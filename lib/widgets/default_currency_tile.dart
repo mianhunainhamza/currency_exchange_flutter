@@ -25,8 +25,8 @@ class DefaultCurrencyTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 29),
       child: Container(
-        width: size.width - 60,
-        height: size.height - 670,
+        width: 300,
+        height: 310,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -34,27 +34,27 @@ class DefaultCurrencyTile extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 30, bottom: 30),
             child: Container(
-              height: size.height - 700,
+              height: 350,
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   color: Colors.black.withOpacity(.03)),
             ),
           ),
           Positioned(
-            left: 150,
-            right: 150,
+            left: size.width /3,
+            right: size.width /3,
             child: CountryFlag.fromCountryCode(
               flag,
-              height: size.height * .07,
+              height: 60,
               borderRadius: 30,
             ),
           ),
           Positioned(
-            left: 130,
+            left: size.width /4,
             top: 100,
             child: SizedBox(
               height: 40,
-              width: 130,
+              width: size.width /2.5,
               child: Text(
                 price,
                 textAlign: TextAlign.center,
@@ -63,11 +63,11 @@ class DefaultCurrencyTile extends StatelessWidget {
             ),
           ),
           Positioned(
-              left: 130,
+              left: size.width /4,
               top: 150,
               child: SizedBox(
                 height: 40,
-                width: 130,
+                width: size.width /2.5,
                 child: Text(
                   textAlign: TextAlign.center,
                   currency,
@@ -76,14 +76,14 @@ class DefaultCurrencyTile extends StatelessWidget {
               )),
           Positioned(
               bottom: 1,
-              left: 100,
+              left: size.width /5,
               child: Material(
                 elevation: 5,
                 color: CupertinoColors.white.withOpacity(.9),
                 borderRadius: BorderRadius.circular(15),
                 child: SizedBox(
-                  width: size.width - 370,
-                  height: size.width - 370,
+                  width: 80,
+                  height: 80,
                   child: Column(children: [
                     const SizedBox(
                       height: 6,
@@ -105,7 +105,7 @@ class DefaultCurrencyTile extends StatelessWidget {
               )),
           Positioned(
               bottom: 1,
-              left: 220,
+              left: size.width /2,
               child: GestureDetector(
                 onTap: ()
                 {
@@ -116,8 +116,8 @@ class DefaultCurrencyTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(15),
                   color: CupertinoColors.white.withOpacity(.9),
                   child: SizedBox(
-                    width: size.width - 370,
-                    height: size.width - 370,
+                    width: 80,
+                    height: 80,
                     child: Column(children: [
                       const SizedBox(
                         height: 6,

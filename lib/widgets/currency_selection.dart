@@ -2,8 +2,8 @@ import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class ConversionTileConversion extends StatelessWidget {
-  const ConversionTileConversion({super.key, required this.flag, required this.price, required this.currency});
+class CurrencySelectionSheet extends StatelessWidget {
+  const CurrencySelectionSheet({super.key, required this.flag, required this.price, required this.currency});
   final String flag;
   final String price;
   final String currency;

@@ -16,8 +16,8 @@ class OnBoardPage extends StatelessWidget {
     return Scaffold(
       body: Column(
         children: [
-          const SizedBox(
-            height: 130,
+          SizedBox(
+            height: size.height * .1,
           ),
           SizedBox(
               width: size.width,
