@@ -1,11 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:country_flags/country_flags.dart';
 import 'package:currency_converter/screens/exchange_result.dart';
 import 'package:currency_converter/screens/home_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../api/currency_rates.dart';
 import '../widgets/currency_selection.dart';
 
@@ -18,21 +20,24 @@ class ConversionPage extends StatefulWidget {
 
 class _ConversionPageState extends State<ConversionPage> {
   bool isLoading = false;
-  String firstCountry = 'PK';
   late final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController amountController = TextEditingController();
-  String secondCountry = 'US';
-  double exchangeRate = 0.0;
+  double exchangeRate = 0;
+  double conversionExchangeRate = 0;
   final ExchangeRateController exchangeRateController =
       Get.put(ExchangeRateController());
+  String firstCountry = '';
+  String secondCountry = '';
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     exchangeRateController.fetchDataBaseRate(firstCountry);
-    exchangeRate = exchangeRateController.convertCurrency(
-        1, exchangeRateController.countries.first, secondCountry);
+    setState(() {
+      exchangeRate = exchangeRateController.convertCurrency(
+          1, exchangeRateController.countries.first, secondCountry);
+    });
   }
 
   void convertCurrency(double amountInFirstCountry, String secondCountry) {
@@ -137,16 +142,19 @@ class _ConversionPageState extends State<ConversionPage> {
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                         enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black, width: 1.0),
+                          borderSide:
+                              BorderSide(color: Colors.black, width: 1.0),
                         ),
                         focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black, width: 2.0),
+                          borderSide:
+                              BorderSide(color: Colors.black, width: 2.0),
                         ),
                         errorBorder: UnderlineInputBorder(
                           borderSide: BorderSide(color: Colors.red, width: 2.0),
                         ),
                         disabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black, width: 1.0),
+                          borderSide:
+                              BorderSide(color: Colors.black, width: 1.0),
                         ),
                       ),
                       textAlign: TextAlign.center,
@@ -170,14 +178,21 @@ class _ConversionPageState extends State<ConversionPage> {
                         return null; // If validation passes, return null
                       },
                     ),
-                  ),),
+                  ),
+                ),
               ),
               const SizedBox(height: 10),
-              Text(
-                '1 $firstCountry = $exchangeRate $secondCountry',
-                style:
-                    const TextStyle(fontWeight: FontWeight.w200, fontSize: 17),
-              ),
+              (exchangeRate.isEqual(0))
+                  ? Text(
+                      '0 $firstCountry = $exchangeRate $secondCountry',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w200, fontSize: 17),
+                    )
+                  : Text(
+                      '1 $firstCountry = $exchangeRate $secondCountry',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w200, fontSize: 17),
+                    ),
               const SizedBox(height: 50),
               GestureDetector(
                 onTap: () {
@@ -200,12 +215,17 @@ class _ConversionPageState extends State<ConversionPage> {
                       children: [
                         Row(
                           children: [
-                            CountryFlag.fromCountryCode(
-                              firstCountry,
-                              height: 70,
-                              width: 75,
-                              borderRadius: 15,
-                            ),
+                            (exchangeRate.isEqual(0))
+                                ? const Icon(
+                                    CupertinoIcons.flag,
+                                    size: 25,
+                                  )
+                                : CountryFlag.fromCountryCode(
+                                    firstCountry,
+                                    height: 70,
+                                    width: 75,
+                                    borderRadius: 15,
+                                  ),
                             const SizedBox(width: 25),
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 20),
@@ -218,12 +238,19 @@ class _ConversionPageState extends State<ConversionPage> {
                                         fontWeight: FontWeight.w500,
                                         fontSize: 20),
                                   ),
-                                  Text(
-                                    '1 $firstCountry',
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w200,
-                                        fontSize: 17),
-                                  ),
+                                  (exchangeRate.isEqual(0))
+                                      ? Text(
+                                          '0 $firstCountry',
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.w200,
+                                              fontSize: 17),
+                                        )
+                                      : Text(
+                                          '1 $firstCountry',
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.w200,
+                                              fontSize: 17),
+                                        ),
                                 ],
                               ),
                             ),
@@ -279,12 +306,17 @@ class _ConversionPageState extends State<ConversionPage> {
                       children: [
                         Row(
                           children: [
-                            CountryFlag.fromCountryCode(
-                              secondCountry,
-                              height: 70,
-                              width: 75,
-                              borderRadius: 15,
-                            ),
+                            (exchangeRate.isEqual(0))
+                                ? const Icon(
+                                    CupertinoIcons.flag,
+                                    size: 25,
+                                  )
+                                : CountryFlag.fromCountryCode(
+                                    secondCountry,
+                                    height: 70,
+                                    width: 75,
+                                    borderRadius: 15,
+                                  ),
                             const SizedBox(width: 25),
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 20),
@@ -297,12 +329,19 @@ class _ConversionPageState extends State<ConversionPage> {
                                         fontWeight: FontWeight.w500,
                                         fontSize: 20),
                                   ),
-                                  Text(
-                                    "$exchangeRate $secondCountry",
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w200,
-                                        fontSize: 17),
-                                  ),
+                                  (exchangeRate.isEqual(0))
+                                      ? const Text(
+                                          "0",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w200,
+                                              fontSize: 17),
+                                        )
+                                      : Text(
+                                          "$exchangeRate $secondCountry",
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.w200,
+                                              fontSize: 17),
+                                        ),
                                 ],
                               ),
                             ),
@@ -325,16 +364,52 @@ class _ConversionPageState extends State<ConversionPage> {
                       isLoading = true;
                     });
                     await exchangeRateController.fetchDataBaseRate(firstCountry);
-                    double exchangeRate = exchangeRateController.convertCurrency(
+                    double conversionExchangeRate =
+                    exchangeRateController.convertCurrency(
                         amountController.text.trim(),
                         exchangeRateController.countries.first,
                         secondCountry);
                     setState(() {
                       isLoading = false;
                     });
-                    Navigator.push(context, CupertinoPageRoute(builder: (c) =>  ExchangeResult(exchangeRate: exchangeRate.toString(), )));
+
+                    if (conversionExchangeRate != 0 && conversionExchangeRate != 0.0) {
+                      DateTime now = DateTime.now();
+                      String formattedDateTime =
+                      DateFormat('dd/MM/yy HH:mm:ss').format(now);
+                      saveExchangeResultToFirebase(
+                          context,
+                          firstCountry,
+                          secondCountry,
+                          conversionExchangeRate.toString(),
+                          amountController.text.trim(),
+                          formattedDateTime);
+                      Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                              builder: (c) => ExchangeResult(
+                                exchangeRate: exchangeRate.toString(),
+                                firstCountry: firstCountry,
+                                secondCountry: secondCountry,
+                                amountConverted:
+                                amountController.text.trim(),
+                                date: formattedDateTime,
+                                totalExchangeAmount:
+                                conversionExchangeRate.toString(),
+                              )));
+                    } else {
+                      // Display error message if conversion or exchange rate is 0 or 0.0
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          duration: Duration(seconds: 1),
+                          content: Text('Select correct Details'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
                   }
-                 },
+                },
+
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
@@ -348,7 +423,7 @@ class _ConversionPageState extends State<ConversionPage> {
                             color: Colors.white,
                           )
                         : const Text(
-                            'CONVERT',
+                            'Convert Now',
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -363,5 +438,40 @@ class _ConversionPageState extends State<ConversionPage> {
         ),
       ),
     );
+  }
+
+  Future<void> saveExchangeResultToFirebase(
+    BuildContext context,
+    String firstCountry,
+    String secCountry,
+    String totalAmountExchanged,
+    String amountConverted,
+    String date,
+  ) async {
+    try {
+      // Get the current user's UID
+      String? uid = FirebaseAuth.instance.currentUser?.uid;
+
+      if (uid != null) {
+        // Reference to the Firestore collection
+        CollectionReference exchangeResults =
+            FirebaseFirestore.instance.collection('exchange_results');
+
+        // Add the exchange result data to Firestore
+        await exchangeResults.add({
+          'userId': uid,
+          'firstCountry': firstCountry,
+          'secondCountry': secondCountry,
+          'totalExchangeAmount': totalAmountExchanged,
+          'amountConverted': amountConverted,
+          'date': date,
+          'exchangeRate': exchangeRate.toString(),
+          'status': 'Completed',
+        });
+      }
+    } catch (e) {
+      print('Error saving exchange result: $e');
+      // Handle error
+    }
   }
 }

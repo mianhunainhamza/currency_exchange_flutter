@@ -53,7 +53,7 @@ class AuthCheckerState extends State<AuthChecker> {
       // User is logged in
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => HomePage()),
+        MaterialPageRoute(builder: (context) => const HomePage()),
       );
     } else {
       // User is not logged in

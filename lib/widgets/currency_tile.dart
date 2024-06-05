@@ -31,7 +31,7 @@ class CurrencyTile extends StatelessWidget {
               const SizedBox(
                 height: 20,
               ),
-              Text(price,style: GoogleFonts.libreBaskerville(fontSize:25),),
+              Text(price,style: GoogleFonts.lato(fontSize:25),),
               const SizedBox(height: 20,),
               Text(currency,style: GoogleFonts.ubuntuMono(fontSize:20),)
           ]

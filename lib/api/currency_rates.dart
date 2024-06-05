@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -16,8 +18,45 @@ class ExchangeRateController extends GetxController {
 
   @override
   void onInit() {
-    fetchData('USD');
+    fetchUserBaseCurrency().then((String? baseCurrency) {
+      if (baseCurrency != null) {
+        fetchData(baseCurrency);
+      } else {
+        fetchData('USD');
+      }
+    });
     super.onInit();
+  }
+
+  Future<void> fetchDataAgain(String baseCurrency) async {
+    try {
+      bool found = conversionRates.keys.any((key) => key.startsWith(baseCurrency));
+      if (found) {
+        // Find the first key that starts with the targetCurrency
+        String matchingKey = conversionRates.keys.firstWhere((key) => key.startsWith(baseCurrency));
+        if (kDebugMode) {
+          print(matchingKey);
+        }
+      var url = Uri.https(
+          'v6.exchangerate-api.com', '/v6/40259054c2fb1039127bb037/latest/$matchingKey');
+      var response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> data = json.decode(response.body);
+        conversionRates.value = data['conversion_rates'];
+        _populateFields();
+        // Set selected currency as the base currency in Firebase
+        await updateBaseCurrencyInFirebase(matchingKey);
+      } else {
+        if (kDebugMode) {
+          print('Request failed with status: ${response.statusCode}');
+        }
+      }
+    }} catch (e) {
+      if (kDebugMode) {
+        print('Error fetching data: $e');
+      }
+    }
   }
 
   Future<void> fetchData(String baseCurrency) async {
@@ -30,6 +69,9 @@ class ExchangeRateController extends GetxController {
         Map<String, dynamic> data = json.decode(response.body);
         conversionRates.value = data['conversion_rates'];
         _populateFields();
+        if (kDebugMode) {
+          print(conversionRates);
+        }
       } else {
         if (kDebugMode) {
           print('Request failed with status: ${response.statusCode}');
@@ -132,6 +174,7 @@ class ExchangeRateController extends GetxController {
 
   double convertCurrency(dynamic amount, String baseCurrency, String targetCurrency) {
     double parsedAmount;
+
     if (amount is String) {
       parsedAmount = double.tryParse(amount) ?? 0.0;
     } else if (amount is double) {
@@ -143,6 +186,71 @@ class ExchangeRateController extends GetxController {
     }
 
     double exchangeRate = getExchangeRate(baseCurrency, targetCurrency);
-    return parsedAmount * exchangeRate;
+    double convertedAmount = parsedAmount * exchangeRate;
+    return double.parse(convertedAmount.toStringAsFixed(4));
   }
+  Future<void> updateBaseCurrencyInFirebase(String baseCurrency) async {
+    try {
+      // Get the current user's UID
+      String? uid = FirebaseAuth.instance.currentUser?.uid;
+
+      if (uid != null) {
+        // Check if the collection exists
+        bool collectionExists = await isCollectionExists('users');
+
+        // Create the collection if it doesn't exist
+        if (!collectionExists) {
+          await FirebaseFirestore.instance.collection('users').doc(uid).set({
+            'baseCurrency': baseCurrency,
+          });
+        } else {
+          // Update the base currency in the user's document
+          await FirebaseFirestore.instance.collection('users').doc(uid).update({
+            'baseCurrency': baseCurrency,
+          });
+        }
+      } else {
+        throw Exception('User not authenticated.');
+      }
+    } catch (e) {
+      print('Error updating base currency in Firebase: $e');
+      throw e;
+    }
+  }
+  Future<bool> isCollectionExists(String collectionName) async {
+    try {
+      var collection = await FirebaseFirestore.instance.collection(collectionName).limit(1).get();
+      return collection.docs.isNotEmpty;
+    } catch (e) {
+      print('Error checking if collection exists: $e');
+      throw e;
+    }
+  }
+
+
+  Future<String?> fetchUserBaseCurrency() async {
+    try {
+      // Get the current user's UID
+      String? uid = FirebaseAuth.instance.currentUser?.uid;
+
+      if (uid != null) {
+        // Query Firestore to get the user's document
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+        // Check if the user document exists and contains the base currency
+        if (userDoc.exists && userDoc.data() is Map) {
+          Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+          if (userData.containsKey('baseCurrency')) {
+            print("${userData['baseCurrency']} here is base currency");
+            return userData['baseCurrency'];
+          }
+        }
+      }
+    } catch (e) {
+      print('Error fetching user base currency: $e');
+    }
+
+    return null;
+  }
+
 }
